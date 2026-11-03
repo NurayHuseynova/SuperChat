@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SuperChat</title>
+<style>
+:root{--bg:#f5f1e8;--card:#fffdf8;--ink:#1c2430;--mute:#6b7280;--acc:#d9622b;--me:#1f3a4d;--meink:#fff;--line:#e3dccb;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#141a21;--card:#1d2630;--ink:#ecebe6;--mute:#9aa4b0;--acc:#f0834d;--me:#2c5670;--line:#2b3744;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#141a21;--card:#1d2630;--ink:#ecebe6;--mute:#9aa4b0;--acc:#f0834d;--me:#2c5670;--line:#2b3744;color-scheme:dark}
+*{box-sizing:border-box}html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;display:flex;justify-content:center}
+#app{width:100%;max-width:760px;height:100%;display:flex;flex-direction:column}
+header{padding:14px 16px 10px;border-bottom:1px solid var(--line)}
+h1{font:700 24px Georgia,"Times New Roman",serif;margin:0;letter-spacing:-.3px}h1 span{color:var(--acc)}
+header p{margin:2px 0 0;color:var(--mute);font-size:13px}
+#log{flex:1;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.m{max-width:88%;padding:9px 13px;border-radius:14px;white-space:pre-wrap;word-wrap:break-word;overflow-wrap:anywhere}
+.u{align-self:flex-end;background:var(--me);color:var(--meink);border-bottom-right-radius:4px}
+.b{align-self:flex-start;background:var(--card);border:1px solid var(--line);border-bottom-left-radius:4px}
+.tag{display:inline-block;font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--acc);margin-bottom:3px;font-weight:600}
+#chips{display:flex;gap:6px;flex-wrap:wrap;padding:0 16px 8px}
+#chips button{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:5px 11px;font-size:12.5px;cursor:pointer}
+form{display:flex;gap:8px;padding:10px 16px 14px;border-top:1px solid var(--line)}
+input{flex:1;min-width:0;padding:11px 13px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--ink);font:inherit}
+.btn{border:0;border-radius:12px;padding:0 15px;background:var(--acc);color:#fff;font-weight:600;cursor:pointer}
+.btn.g{background:var(--card);color:var(--ink);border:1px solid var(--line)}.btn.rec{background:#c0392b;color:#fff}
+.foot{padding:0 16px 8px;font-size:12px;color:var(--mute)}.foot a{color:var(--acc);cursor:pointer}
+</style></head><body><div id="app">
+<header><h1>Super<span>Chat</span></h1><p>Flights · Shopping · Cinema — one chat. EN / RU / AZ</p></header>
+<div id="log"></div><div id="chips"></div>
+<div class="foot"><a id="test">Run routing self-test</a> · mock data, ref. date Mon 2 Nov 2026</div>
+<form id="f"><input id="q" autocomplete="off" placeholder="Ask about flights, products or films…"><button type="button" id="mic" class="btn g" title="Voice">🎤</button><button class="btn">Send</button></form>
+</div>
+<script>
+const DATA={"flights":[{"id":"F001","airline":"Caspian Air","flight_number":"CA101","origin":{"code":"GYD","city":"Baku"},"destination":{"code":"IST","city":"Istanbul"},"departure_local":"2026-11-06T07:30","arrival_local":"2026-11-06T10:05","duration_min":215,"stops":0,"via":null,"price_azn":289.0,"cabin":"economy","baggage_kg":20,"seats_available":14},{"id":"F002","airline":"Bosphor Air","flight_number":"BA220","origin":{"code":"GYD","city":"Baku"},"destination":{"code":"IST","city":"Istanbul"},"departure_local":"2026-11-06T14:20","arrival_local":"2026-11-06T17:00","duration_min":220,"stops":0,"via":null,"price_azn":245.0,"cabin":"economy","baggage_kg":15,"seats_available":3},{"id":"F003","airline":"Caspian Air","flight_number":"CA103","origin":{"code":"GYD","city":"Baku"},"destination":{"code":"IST","city":"Istanbul"},"departure_local":"2026-11-07T06:10","arrival_local":"2026-11-07T08:45","duration_min":215,"stops":0,"via":null,"price_azn":310.0,"cabin":"economy","baggage_kg":20,"seats_available":22},{"id":"F004","airline":"Bosphor Air","flight_number":"BA221","origin":{"code":"IST","city":"Istanbul"},"destination":{"code":"GYD","city":"Baku"},"departure_local":"2026-11-09T15:30","arrival_local":"2026-11-09T22:05","duration_min":215,"stops":0,"via":null,"price_azn":275.0,"cabin":"economy","baggage_kg":15,"seats_available":9},{"id":"F005","airline":"Caspian Air","flight_number":"CA104","origin":{"code":"IST","city":"Istanbul"},"destination":{"code":"GYD","city":"Baku"},"departure_local":"2026-11-10T09:00","arrival_local":"2026-11-10T15:35","duration_min":215,"stops":0,"via":null,"price_azn":260.0,"cabin":"economy","baggage_kg":20,"seats_available":18},{"id":"F006","airline":"SkyBridge","flight_number":"SB410","origin":{"code":"GYD","city":"Baku"},"destination":{"code":"DXB","city":"Dubai"},"departure_local":"2026-11-05T02:40","arrival_local":"2026-11-05T06:25","duration_min":225,"stops":0,"via":null,"price_azn":520.0,"cabin":"economy","baggage_kg":25,"seats_available":25},{"id":"F007","airline":"SkyBridge","flight_number":"SB412","origin":{"code":"GYD","city":"Baku"},"destination":{"code":"DXB","city":"Dubai"},"departure_local":"2026-11-08T21:15","arrival_local":"2026-11-09T01:00","duration_min":225,"stops":0,"via":null,"price_azn":465.0,"cabin":"economy","baggage_kg":25,"seats_available":40},{"id":"F008","airline":"SkyBridge","flight_number":"SB411","origin":{"code":"DXB","city":"Dubai"},"destination":{"code":"GYD","city":"Baku"},"departure_local":"2026-11-12T08:00","arrival_local":"2026-11-12T11:45","duration_min":225,"stops":0,"via":null,"price_azn":490.0,"cabin":"economy","baggage_kg":25,"seats_available":31},{"id":"F009","airline":"Azerwings","flight_number":"AW300","origin":{"code":"GYD","city":"Baku"},"destination":{"code":"SVO","city":"Moscow"},"departure_local":"2026-11-04T10:00","arrival_local":"2026-11-04T13:05","duration_min":245,"stops":0,"via":null,"price_azn":410.0,"cabin":"economy","baggage_kg":23,"seats_available":17},{"id":"F010","airline":"Azerwings","flight_number":"AW301","origin":{"code":"SVO","city":"Moscow"},"destination":{"code":"GYD","city":"Baku"},"departure_local":"2026-11-11T16:45","arrival_local":"2026-11-11T21:50","duration_min":245,"stops":0,"via":null,"price_azn":395.0,"cabin":"economy","baggage_kg":23,"seats_available":20},{"id":"F011","airline":"Azerwings","flight_number":"AW150","origin":{"code":"GYD","city":"Baku"},"destination":{"code":"TBS","city":"Tbilisi"},"departure_local":"2026-11-03T12:00","arrival_local":"2026-11-03T13:15","duration_min":75,"stops":0,"via":null,"price_azn":95.0,"cabin":"economy","baggage_kg":20,"seats_available":30},{"id":"F012","airline":"Azerwings","flight_number":"AW151","origin":{"code":"TBS","city":"Tbilisi"},"destination":{"code":"GYD","city":"Baku"},"departure_local":"2026-11-09T17:30","arrival_local":"2026-11-09T18:45","duration_min":75,"stops":0,"via":null,"price_azn":99.0,"cabin":"economy","baggage_kg":20,"seats_available":26},{"id":"F013","airline":"Azerwings","flight_number":"AW520","origin":{"code":"GYD","city":"Baku"},"destination":{"code":"IST","city":"Istanbul"},"departure_local":"2026-11-06T05:00","arrival_local":"2026-11-06T10:40","duration_min":400,"stops":1,"via":"TBS","price_azn":175.0,"cabin":"economy","baggage_kg":15,"seats_available":11},{"id":"F014","airline":"Bosphor Air","flight_number":"BA730","origin":{"code":"GYD","city":"Baku"},"destination":{"code":"DXB","city":"Dubai"},"departure_local":"2026-11-06T03:30","arrival_local":"2026-11-06T12:30","duration_min":540,"stops":1,"via":"IST","price_azn":390.0,"cabin":"economy","baggage_kg":20,"seats_available":8},{"id":"F015","airline":"Azerwings","flight_number":"AW302","origin":{"code":"GYD","city":"Baku"},"destination":{"code":"SVO","city":"Moscow"},"departure_local":"2026-11-07T22:30","arrival_local":"2026-11-08T01:35","duration_min":245,"stops":0,"via":null,"price_azn":380.0,"cabin":"economy","baggage_kg":23,"seats_available":13},{"id":"F016","airline":"SkyBridge","flight_number":"SB610","origin":{"code":"GYD","city":"Baku"},"destination":{"code":"TAS","city":"Tashkent"},"departure_local":"2026-11-09T08:30","arrival_local":"2026-11-09T12:50","duration_min":200,"stops":0,"via":null,"price_azn":340.0,"cabin":"economy","baggage_kg":23,"seats_available":16},{"id":"F017","airline":"Caspian Air","flight_number":"CA107","origin":{"code":"GYD","city":"Baku"},"destination":{"code":"IST","city":"Istanbul"},"departure_local":"2026-11-07T18:00","arrival_local":"2026-11-07T20:35","duration_min":215,"stops":0,"via":null,"price_azn":890.0,"cabin":"business","baggage_kg":40,"seats_available":4}],"products":[{"id":"P001","name":{"en":"Wireless Headphones","az":"Simsiz qulaqlıq","ru":"Беспроводные наушники"},"category":"audio","brand":"Sonivo","price_azn":89.9,"rating":4.4,"stock":23,"color":"black","description":"Over-ear Bluetooth headphones, 30h battery"},{"id":"P002","name":{"en":"Wireless Earbuds","az":"Simsiz qulaqcıq","ru":"Беспроводные вкладыши"},"category":"audio","brand":"Sonivo","price_azn":59.0,"rating":4.1,"stock":0,"color":"white","description":"In-ear earbuds with charging case"},{"id":"P003","name":{"en":"Laptop 15\" Pro","az":"Noutbuk 15\" Pro","ru":"Ноутбук 15\" Pro"},"category":"computers","brand":"Nexar","price_azn":1899.0,"rating":4.6,"stock":7,"color":"silver","description":"16 GB RAM, 512 GB SSD, 15.6 inch display"},{"id":"P004","name":{"en":"Laptop 14\" Air","az":"Noutbuk 14\" Air","ru":"Ноутбук 14\" Air"},"category":"computers","brand":"Nexar","price_azn":1249.0,"rating":4.3,"stock":12,"color":"grey","description":"8 GB RAM, 256 GB SSD, lightweight 1.2 kg"},{"id":"P005","name":{"en":"Smartphone X5","az":"Smartfon X5","ru":"Смартфон X5"},"category":"phones","brand":"Veltra","price_azn":999.0,"rating":4.5,"stock":18,"color":"black","description":"6.5 inch OLED, 128 GB, dual camera"},{"id":"P006","name":{"en":"Smartphone X5 Lite","az":"Smartfon X5 Lite","ru":"Смартфон X5 Lite"},"category":"phones","brand":"Veltra","price_azn":549.0,"rating":4.0,"stock":31,"color":"blue","description":"6.1 inch LCD, 64 GB"},{"id":"P007","name":{"en":"Smartwatch S2","az":"Ağıllı saat S2","ru":"Умные часы S2"},"category":"wearables","brand":"Veltra","price_azn":199.0,"rating":4.2,"stock":15,"color":"black","description":"Heart rate, GPS, 7-day battery"},{"id":"P008","name":{"en":"Portable Speaker","az":"Portativ dinamik","ru":"Портативная колонка"},"category":"audio","brand":"Sonivo","price_azn":74.5,"rating":4.3,"stock":40,"color":"black","description":"Waterproof, 12h playtime"},{"id":"P009","name":{"en":"Running Shoes","az":"Qaçış ayaqqabısı","ru":"Беговые кроссовки"},"category":"sport","brand":"Stridex","price_azn":129.0,"rating":4.4,"stock":26,"color":"black","description":"Lightweight road running shoes, sizes 38-46"},{"id":"P010","name":{"en":"Backpack 25L","az":"Çanta 25L","ru":"Рюкзак 25 л"},"category":"accessories","brand":"Stridex","price_azn":65.0,"rating":4.5,"stock":19,"color":"black","description":"Water-resistant, laptop compartment up to 15 inch"},{"id":"P011","name":{"en":"Coffee Machine","az":"Qəhvə maşını","ru":"Кофемашина"},"category":"home","brand":"Brewa","price_azn":349.0,"rating":4.2,"stock":5,"color":"silver","description":"Automatic espresso, built-in grinder"},{"id":"P012","name":{"en":"Board Game Set","az":"Stolüstü oyun dəsti","ru":"Настольная игра"},"category":"gifts","brand":"Playo","price_azn":39.0,"rating":4.7,"stock":34,"color":"multicolor","description":"Family strategy game for 2-5 players"}],"movies":[{"id":"M001","title":"Orbit Zero","genre":["sci-fi","thriller"],"language":"English","duration_min":128,"age_rating":"12+","rating":8.1,"synopsis":"A crew on a failing space station must decide who returns to Earth."},{"id":"M002","title":"The Last Caravan","genre":["adventure","drama"],"language":"Azerbaijani","duration_min":115,"age_rating":"12+","rating":7.6,"synopsis":"A merchant family crosses the Silk Road during one eventful winter."},{"id":"M003","title":"Laugh Track","genre":["comedy"],"language":"Russian","duration_min":97,"age_rating":"6+","rating":6.9,"synopsis":"Two rival stand-up comedians are forced to share a tour bus."},{"id":"M004","title":"Midnight Archive","genre":["horror","mystery"],"language":"English","duration_min":104,"age_rating":"18+","rating":7.2,"synopsis":"A night guard discovers that the city archive records events before they happen."},{"id":"M005","title":"Paper Kites","genre":["animation","family"],"language":"Russian","duration_min":89,"age_rating":"0+","rating":7.8,"synopsis":"Children build kites that carry messages across a divided town."},{"id":"M006","title":"Iron Ledger","genre":["action","crime"],"language":"English","duration_min":122,"age_rating":"16+","rating":7.0,"synopsis":"An accountant uncovers a smuggling network and must run."},{"id":"M007","title":"Spring in Baku","genre":["romance","comedy"],"language":"Azerbaijani","duration_min":108,"age_rating":"12+","rating":7.4,"synopsis":"Two architects restoring an old building slowly fall for each other."},{"id":"M008","title":"Deep Signal","genre":["sci-fi","mystery"],"language":"English","duration_min":136,"age_rating":"12+","rating":8.4,"synopsis":"A radio astronomer decodes a message that is addressed to her by name."}],"cinemas":[{"id":"C001","name":"CinemaPlus Ganjlik","district":"Nasimi","address":"Ganjlik Mall, 3rd floor, Baku"},{"id":"C002","name":"CinemaPlus 28 Mall","district":"Nasimi","address":"28 Mall, 4th floor, Baku"},{"id":"C003","name":"CinemaPlus Sumgayit","district":"Sumgayit","address":"Sumgayit Boulevard Plaza, Sumgayit"}],"showtimes":[{"id":"S001","movie_id":"M001","cinema_id":"C001","date":"2026-11-02","time":"19:30","hall":"Hall 1","price_azn":12.0,"seats_total":120,"seats_available":34},{"id":"S002","movie_id":"M003","cinema_id":"C001","date":"2026-11-02","time":"21:00","hall":"Hall 2","price_azn":9.0,"seats_total":80,"seats_available":52},{"id":"S003","movie_id":"M008","cinema_id":"C002","date":"2026-11-02","time":"20:15","hall":"Hall 3","price_azn":13.0,"seats_total":150,"seats_available":0},{"id":"S004","movie_id":"M005","cinema_id":"C002","date":"2026-11-03","time":"16:00","hall":"Hall 1","price_azn":7.0,"seats_total":100,"seats_available":71},{"id":"S005","movie_id":"M006","cinema_id":"C003","date":"2026-11-03","time":"21:30","hall":"Hall 1","price_azn":8.0,"seats_total":90,"seats_available":60},{"id":"S006","movie_id":"M002","cinema_id":"C001","date":"2026-11-04","time":"18:45","hall":"Hall 2","price_azn":9.0,"seats_total":80,"seats_available":45},{"id":"S007","movie_id":"M004","cinema_id":"C002","date":"2026-11-04","time":"22:00","hall":"Hall 3","price_azn":11.0,"seats_total":150,"seats_available":98},{"id":"S008","movie_id":"M001","cinema_id":"C002","date":"2026-11-05","time":"19:00","hall":"Hall 3","price_azn":13.0,"seats_total":150,"seats_available":110},{"id":"S009","movie_id":"M007","cinema_id":"C003","date":"2026-11-05","time":"20:00","hall":"Hall 1","price_azn":7.5,"seats_total":90,"seats_available":38},{"id":"S010","movie_id":"M008","cinema_id":"C001","date":"2026-11-06","time":"20:30","hall":"Hall 1","price_azn":13.0,"seats_total":120,"seats_available":12},{"id":"S011","movie_id":"M008","cinema_id":"C001","date":"2026-11-07","time":"15:00","hall":"Hall 1","price_azn":11.0,"seats_total":120,"seats_available":67},{"id":"S012","movie_id":"M001","cinema_id":"C001","date":"2026-11-07","time":"19:30","hall":"Hall 1","price_azn":14.0,"seats_total":120,"seats_available":5},{"id":"S013","movie_id":"M005","cinema_id":"C003","date":"2026-11-07","time":"12:00","hall":"Hall 2","price_azn":6.0,"seats_total":70,"seats_available":44},{"id":"S014","movie_id":"M006","cinema_id":"C002","date":"2026-11-07","time":"21:45","hall":"Hall 2","price_azn":12.0,"seats_total":100,"seats_available":57},{"id":"S015","movie_id":"M003","cinema_id":"C002","date":"2026-11-08","time":"17:30","hall":"Hall 1","price_azn":8.0,"seats_total":100,"seats_available":83},{"id":"S016","movie_id":"M007","cinema_id":"C001","date":"2026-11-08","time":"19:00","hall":"Hall 2","price_azn":9.5,"seats_total":80,"seats_available":29}]};
+/* ===== Data layer: swap MockSource for ApiSource in Phase 2 ===== */
+class MockSource{constructor(d){this.d=d}async all(k){return this.d[k]}}
+class ApiSource{constructor(cfg){this.cfg=cfg}async all(k){/* Phase 2: fetch(this.cfg.base[k], {headers:auth}) + map to the Appendix A schema */throw new Error('API not configured')}}
+const SRC=new MockSource(DATA);
+const FlightRepository={list:()=>SRC.all('flights')};
+const ProductRepository={list:()=>SRC.all('products')};
+const ShowtimeRepository={movies:()=>SRC.all('movies'),cinemas:()=>SRC.all('cinemas'),list:()=>SRC.all('showtimes')};
+/* ===== State ===== */
+const fresh=()=>({sess:{lang:'en',last:null},f:{list:[],sel:null},s:{list:[],sel:null,cart:{},hist:[]},c:{list:[],sel:null},res:[]});
+let S=fresh(),lang='en';
+const t=(e,r,a)=>({en:e,ru:r,az:a}[lang]);
+/* ===== Helpers ===== */
+const REF='2026-11-02',lc=s=>s.toLowerCase();
+const addD=n=>{const d=new Date(REF+'T00:00:00Z');d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10)};
+const DOW=[['bazar ertəsi',1],['çərşənbə axşamı',2],['çərşənbə',3],['cümə axşamı',4],['cümə',5],['şənbə',6],['bazar',0],['monday',1],['tuesday',2],['wednesday',3],['thursday',4],['friday',5],['saturday',6],['sunday',0],['понедельник',1],['вторник',2],['сред',3],['четверг',4],['пятниц',5],['суббот',6],['воскресень',0]];
+function pDate(x){let m;
+ if(m=x.match(/\d{4}-\d{2}-\d{2}/))return m[0];
+ if(m=x.match(/(\d{1,2})(?:-?(?:ci|cı|cu|cü|inci|ıncı|th))?\s*(?:nov\w*|ноябр\w*|noyabr\w*)/))return'2026-11-'+m[1].padStart(2,'0');
+ if(/tonight|today|сегодня|bu gün|bu axşam/.test(x))return addD(0);
+ if(/tomorrow|завтра|\bsabah\b/.test(x))return addD(1);
+ for(const[k,d]of DOW)if(x.includes(k))return addD((d+6)%7);return null}
+const CITY=[['Baku',/baku|bakı|баку/],['Istanbul',/istanbul|стамбул/],['Dubai',/dubai|dubay|дубай/],['Moscow',/moscow|moskva|москв/],['Tashkent',/tashkent|daşkənd|ташкент/],['Tbilisi',/tbilisi|tiflis|тбилис/]];
+function cities(x){const r=[];for(const[n,re]of CITY){const m=x.match(re);if(!m)continue;const pre=x.slice(Math.max(0,m.index-8),m.index),post=x.slice(m.index+m[0].length,m.index+m[0].length+5);
+ r.push({n,i:m.index,o:/(from|из|от)\s*$/.test(pre)||/^(dan|dən)/.test(post),d:/(to|в|на)\s*$/.test(pre)||/^(a|ə|ya|yə)(\s|$|[,.?!])/.test(post)})}
+ r.sort((a,b)=>a.i-b.i);let o=(r.find(c=>c.o)||{}).n,d=(r.find(c=>c.d&&c.n!==o)||{}).n;
+ if(!o&&!d){if(r.length>1){o=r[0].n;d=r[1].n}else if(r.length)d=r[0].n}
+ else if(!d&&r.length>1)d=(r.find(c=>c.n!==o)||{}).n;
+ return{o,d,any:r.length>0}}
+const ORD=[[/\b1st\b|first|перв|birinci|\b1-ci/,0],[/\b2nd\b|second|втор|ikinci|\b2-ci/,1],[/\b3rd\b|third|трет|üçüncü|\b3-cü/,2],[/\b4th\b|fourth|четв[её]рт|dördüncü/,3]];
+function pick(x,l,key='price_azn'){if(!l||!l.length)return null;for(const[re,i]of ORD)if(re.test(x))return l[i]||null;
+ if(/cheap|lowest|дешев|ucuz/.test(x))return l.reduce((a,b)=>b[key]<a[key]?b:a);return null}
+const money=n=>n+' AZN',dur=m=>Math.floor(m/60)+'h '+m%60+'m';
+const NUM={one:1,two:2,three:3,four:4,five:5,bir:1,iki:2,'üç':3,'dörd':4,'один':1,'два':2,'две':2,'три':3,'четыре':4};
+function qty(x){const m=x.match(/\d+/);if(m)return+m[0];for(const k in NUM)if(new RegExp('(^|\\s)'+k+'(\\s|$)').test(x))return NUM[k];return 1}
+function priceMax(x){const m=x.match(/(?:under|below|до|менее|less than|max)\s*(\d+)|(\d+)\s*(?:azn|₼|манат\w*)?\s*-?(?:dən|dan)?\s*(?:aşağı|az\b|altında|ucuz)/);return m?+(m[1]||m[2]):null}
+function priceMin(x){const m=x.match(/(?:over|above|свыше|более|from)\s*(\d+)/);return m?+m[1]:null}
+const NO_Q=x=>/\?$/.test(x);
+/* ===== Flights ===== */
+const fl=(f,i)=>`${i?i+'. ':''}**${f.flight_number}** ${f.airline} · ${f.origin.city}→${f.destination.city} · ${f.departure_local.slice(8,10)}.${f.departure_local.slice(5,7)} ${f.departure_local.slice(11)}–${f.arrival_local.slice(11)} · ${dur(f.duration_min)} · ${f.stops?t('1 stop via '+f.via,'1 пересадка ('+f.via+')','1 aktarma ('+f.via+')'):t('direct','прямой','düz')} · **${money(f.price_azn)}**`;
+function fDetail(f,x){let a='';
+ if(/direct|nonstop|stops|прям|пересад|düz|aktarma/.test(x))a=f.stops?t(`No, it has ${f.stops} stop via ${f.via}.`,`Нет, пересадка: ${f.via}.`,`Xeyr, aktarma var: ${f.via}.`):t('Yes, it is a direct flight.','Да, рейс прямой.','Bəli, düz reysdir.');
+ else if(/baggage|багаж|baqaj/.test(x))a=t(`Baggage allowance: ${f.baggage_kg} kg.`,`Багаж: ${f.baggage_kg} кг.`,`Baqaj: ${f.baggage_kg} kq.`);
+ else if(/seat|мест|yer/.test(x))a=t(`${f.seats_available} seats left.`,`Осталось мест: ${f.seats_available}.`,`Qalan yer: ${f.seats_available}.`);
+ return(a?a+'\n':'')+fl(f)+` · ${f.cabin} · ${f.baggage_kg} kg · ${t('seats left','мест','yer')}: ${f.seats_available}\n`+t('Say "book it" to reserve (mock).','Скажите «забронируй», чтобы оформить (демо).','Rezerv üçün "rezerv et" yazın (demo).')}
+function reserve(kind,label,n){const id='RES-'+(1001+S.res.length);S.res.push({id,kind,label,n});return t(`Reserved (mock, no payment): ${label}. Reference **${id}**.`,`Забронировано (демо, без оплаты): ${label}. Номер **${id}**.`,`Rezerv edildi (demo, ödənişsiz): ${label}. Nömrə **${id}**.`)}
+async function flights(x){const L=await FlightRepository.list(),st=S.f,c=cities(x),dt=pDate(x),hasQ=c.any||(dt&&!/seat|мест|yer/.test(x)),ref=pick(x,st.list);
+ const bk=/book|reserve|забронир|оформ|rezerv/.test(x);
+ if(/compare|сравни|müqayisə/.test(x)&&st.list.length>1)return t('Comparison:','Сравнение:','Müqayisə:')+'\n'+st.list.slice(0,3).map((f,i)=>fl(f,i+1)+` · ${f.baggage_kg} kg`).join('\n');
+ if(!hasQ){const f=ref||st.sel||(st.list.length===1?st.list[0]:null);
+  if(f){st.sel=f;if(bk){if(!f.seats_available)return t('That flight is sold out.','Мест нет.','Yer yoxdur.');return reserve('flight',`${f.flight_number} ${f.origin.city}→${f.destination.city} ${f.departure_local.replace('T',' ')}`)}return fDetail(f,x)}
+  if(st.list.length)return t('Current flight results:','Текущие рейсы:','Cari reyslər:')+'\n'+st.list.map((f,i)=>fl(f,i+1)).join('\n');
+  return t('Which route and date? E.g. "Baku to Istanbul on Friday".','Какой маршрут и дата? Например: «Баку — Стамбул в пятницу».','Hansı marşrut və tarix? Məs: "Bakıdan İstanbula cümə".')}
+ const o=c.o||'Baku',d=c.d;let r=L.filter(f=>f.origin.city===o&&(!d||f.destination.city===d));
+ const all=r;if(dt)r=r.filter(f=>f.departure_local.slice(0,10)===dt);
+ if(/direct|nonstop|прям|düz|aktarmasız/.test(x))r=r.filter(f=>!f.stops);
+ const mx=priceMax(x);if(mx)r=r.filter(f=>f.price_azn<=mx);
+ r.sort(/earliest|раньше|ən tez/.test(x)?(a,b)=>a.departure_local.localeCompare(b.departure_local):(a,b)=>a.price_azn-b.price_azn);
+ st.list=r;st.sel=r.length===1?r[0]:null;
+ if(!r.length){const ds=[...new Set(all.map(f=>f.departure_local.slice(5,10)))];
+  return t(`No flights found for ${o}${d?'→'+d:''}${dt?' on '+dt:''}.`,`Рейсов не найдено: ${o}${d?'→'+d:''}${dt?', '+dt:''}.`,`Reys tapılmadı: ${o}${d?'→'+d:''}${dt?', '+dt:''}.`)+(ds.length?t(` Available dates on this route: ${ds.join(', ')}.`,` Доступные даты на маршруте: ${ds.join(', ')}.`,` Marşrutda mövcud tarixlər: ${ds.join(', ')}.`):'')}
+ return t(`${r.length} flight(s), cheapest first:`,`Найдено рейсов: ${r.length} (сначала дешёвые):`,`${r.length} reys tapıldı (ucuzdan bahaya):`)+'\n'+r.map((f,i)=>fl(f,i+1)).join('\n')}
+/* ===== Shopping ===== */
+const STOP=/^(the|show|find|have|with|that|this|what|please|need|looking|want|give|any|for|you|and|have|is|it|in|stock|show|me|есть|покажи|найди|нужн\w*|мне|или|для|что|как|bir|mənə|göstər|var|axtar|lazım\w*)$/;
+const stem=w=>w.slice(0,5),words=x=>(x.match(/[a-zа-яəıöüğşç]{4,}/g)||[]);
+let VOC=null;
+function vocab(P){if(!VOC){VOC=new Set();P.forEach(p=>ptext(p).forEach(s=>VOC.add(s)))}return VOC}
+const ptext=p=>new Set(words(lc([p.name.en,p.name.ru,p.name.az,p.category,p.brand,p.color].join(' '))).map(stem));
+const pr=(p,i)=>`${i?i+'. ':''}**${p.name[lang]}** (${p.brand}) · ${money(p.price_azn)} · ★${p.rating} · ${p.stock?t('in stock: '+p.stock,'в наличии: '+p.stock,'stokda: '+p.stock):t('out of stock','нет в наличии','stokda yoxdur')}`;
+const cartTxt=P=>{const ids=Object.keys(S.s.cart);if(!ids.length)return t('Your cart is empty.','Корзина пуста.','Səbət boşdur.');let tot=0;return t('Cart:','Корзина:','Səbət:')+'\n'+ids.map(id=>{const p=P.find(z=>z.id===id),q=S.s.cart[id];tot+=p.price_azn*q;return`• ${p.name[lang]} × ${q} = ${money((p.price_azn*q).toFixed(2))}`}).join('\n')+'\n**'+t('Total','Итого','Cəmi')+': '+money(tot.toFixed(2))+'**'};
+async function shopping(x){const P=await ProductRepository.list(),st=S.s,V=vocab(P);
+ const toks=words(x).filter(w=>!STOP.test(w)&&V.has(stem(w))).map(stem),mx=priceMax(x),mn=priceMin(x);
+ let ref=pick(x,st.list);
+ const back=/back to|вернём|вернем|вернись|назад к|geri/.test(x),add=/\badd\b|put|в корзину|положи|əlavə|səbətə at/.test(x),rem=/remove|delete|убери|удали|\bsil\b/.test(x);
+ if(/compare|сравни|müqayisə/.test(x)&&st.list.length>1)return t('Comparison:','Сравнение:','Müqayisə:')+'\n'+st.list.slice(0,3).map((p,i)=>pr(p,i+1)+' · '+p.description).join('\n');
+ if(back&&toks.length){const h=[...st.hist].reverse().find(h=>toks.every(k=>h.toks.includes(k)));if(h){st.list=h.ids.map(id=>P.find(p=>p.id===id));st.sel=h.sel?P.find(p=>p.id===h.sel):null;return t('Back to your earlier list:','Возвращаемся к прежнему списку:','Əvvəlki siyahıya qayıdırıq:')+'\n'+st.list.map((p,i)=>pr(p,i+1)+(st.sel&&st.sel.id===p.id?'  ← '+t('selected','выбрано','seçilib'):'')).join('\n')}}
+ if(/\b(cart|basket)\b|корзин|səbət/.test(x)&&!add&&!rem&&!toks.length)return cartTxt(P);
+ if((add||rem)&&!toks.length){const p=ref||st.sel||(st.list.length===1?st.list[0]:null);
+  if(!p)return t('Which product? Search first or name it.','Какой товар? Найдите его или назовите.','Hansı məhsul? Əvvəlcə axtarın.');
+  st.sel=p;if(rem){delete st.cart[p.id];return t('Removed.','Удалено.','Silindi.')+'\n'+cartTxt(P)}
+  if(!p.stock)return t(`${p.name.en} is out of stock.`,`${p.name.ru} нет в наличии.`,`${p.name.az} stokda yoxdur.`);
+  st.cart[p.id]=(st.cart[p.id]||0)+1;return t('Added to cart.','Добавлено в корзину.','Səbətə əlavə edildi.')+'\n'+cartTxt(P)}
+ if(!toks.length&&mx==null&&mn==null){const p=ref||st.sel;
+  if(p){st.sel=p;return pr(p)+'\n'+p.description+' · '+p.color}
+  if(st.list.length)return st.list.map((p,i)=>pr(p,i+1)).join('\n');
+  if(!/product|товар|məhsul|shop|купить|buy|almaq/.test(x))return t('What are you looking for? E.g. "wireless headphones under 100 AZN".','Что ищете? Например: «беспроводные наушники до 100 AZN».','Nə axtarırsınız? Məs: "100 AZN-dən ucuz simsiz qulaqlıq".')}
+ let r=P.filter(p=>{const s=ptext(p);return toks.every(k=>s.has(k))&&(mx==null||p.price_azn<=mx)&&(mn==null||p.price_azn>=mn)});
+ if(!toks.length&&mx==null&&mn==null)r=[...P].sort((a,b)=>b.rating-a.rating).slice(0,6);
+ r.sort((a,b)=>a.price_azn-b.price_azn);st.list=r;st.sel=r.length===1?r[0]:null;
+ if(!r.length)return t('No matching products in the catalogue.','Подходящих товаров в каталоге нет.','Kataloqda uyğun məhsul yoxdur.');
+ st.hist.push({toks,ids:r.map(p=>p.id),sel:st.sel&&st.sel.id});
+ return r.map((p,i)=>pr(p,i+1)).join('\n')}
+/* ===== Cinema ===== */
+const GEN=[['sci-fi',/sci-?fi|science fiction|фантаст|elmi/],['comedy',/comed|комед|komediya/],['horror',/horror|ужас|qorxu/],['action',/action|боевик|aksiyon|döyüş/],['drama',/drama|драм/],['animation',/animat|мульт|animasiya/],['romance',/romance|романт|romantik/],['thriller',/thriller|триллер/],['adventure',/adventure|приключ|macəra/],['family',/family|семейн|ailə/],['mystery',/mystery|детектив|sirr/],['crime',/crime|криминал/]];
+const LG=[['English',/english|англий|ingilis/],['Russian',/russian|русск|\brus\b/],['Azerbaijani',/azerbaijani|азербайдж|azərbaycan/]];
+async function cinema(x){const M=await ShowtimeRepository.movies(),ST=await ShowtimeRepository.list(),CN=await ShowtimeRepository.cinemas(),st=S.c;
+ const dt=pDate(x),g=GEN.filter(([,re])=>re.test(x)).map(a=>a[0]),lg=LG.filter(([,re])=>re.test(x)).map(a=>a[0]),nm=M.filter(m=>x.includes(lc(m.title)));
+ const bk=/book|reserve|забронир|купить|купи|rezerv|\bal\b/.test(x),q=qty(x),ref=pick(x,st.list),filt=g.length||lg.length||nm.length||dt;
+ const mv=id=>M.find(m=>m.id===id),cn=id=>CN.find(c=>c.id===id).name.replace('CinemaPlus ','');
+ const line=(s,i)=>{const m=mv(s.movie_id);return`${i?i+'. ':''}**${m.title}** (${m.genre.join('/')}, ${m.age_rating}, ★${m.rating}, ${m.language}) · ${cn(s.cinema_id)} · ${s.date.slice(8)}.${s.date.slice(5,7)} ${s.time} · ${money(s.price_azn)} · ${s.seats_available?s.seats_available+' '+t('seats','мест','yer'):t('sold out','распродано','bilet yoxdur')}`};
+ const doBook=s=>{if(!s.seats_available||s.seats_available<q)return t(`Only ${s.seats_available} seat(s) left for that showtime.`,`На этот сеанс осталось мест: ${s.seats_available}.`,`Bu seansda yalnız ${s.seats_available} yer qalıb.`);
+  s.seats_available-=q;return reserve('cinema',`${mv(s.movie_id).title}, ${cn(s.cinema_id)}, ${s.date} ${s.time}, ${q} ${t('seat(s)','мест','yer')}, ${money(q*s.price_azn)}`)};
+ if(!filt){const s=ref||st.sel||(st.list.length===1?st.list[0]:null);
+  if(bk){if(!s)return t('Which film and showtime should I book? Search first, e.g. "what is playing tonight?".','На какой фильм и сеанс бронировать? Сначала найдите сеанс, например «что идёт сегодня вечером?».','Hansı film və seans üçün rezerv edim? Məs: "bu axşam nə var?".');st.sel=s;return doBook(s)}
+  if(s){st.sel=s;return line(s)}}
+ let ms=M.filter(m=>(!g.length||g.some(k=>m.genre.includes(k)))&&(!lg.length||lg.includes(m.language))&&(!nm.length||nm.includes(m)));
+ let r=ST.filter(s=>ms.some(m=>m.id===s.movie_id)&&(!dt||s.date===dt)).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
+ st.list=r;st.sel=r.length===1?r[0]:null;
+ if(!r.length)return t('No matching showtimes.','Подходящих сеансов нет.','Uyğun seans tapılmadı.');
+ if(bk&&r.length===1)return doBook(r[0]);
+ return r.map((s,i)=>line(s,i+1)).join('\n')+(r.length>1?'\n'+t('Pick one ("the 2nd") to book.','Выберите сеанс («второй»), чтобы забронировать.','Rezerv üçün seans seçin ("ikinci").'):'')}
+/* ===== Router ===== */
+const RF=/flight|fly\b|airline|baggage|nonstop|non-stop|direct|layover|\bstops?\b|aviasales|рейс|перел[её]т|авиа|самол[её]т|пересад|багаж|прям(ой|ые)|uçuş|reys|təyyarə|aktarma|\bdüz\b|baqaj/;
+const RC=/film|movie|cinema|showtime|playing|screening|\bseats?\b|ticket|tonight|sci-?fi|horror|comedy|фильм|кино|сеанс|\bмест|билет|ужасы|комед|фантаст|мульт|kino|seans|\byer\b|bilet|komediya|qorxu|animasiya|cinemaplus/;
+let RS=null;
+async function shopRe(){if(!RS){const P=await ProductRepository.list();RS=new RegExp('('+[...vocab(P)].filter(s=>!/^(home|black|white|blue|grey|silve|multi|lite|water)$/.test(s)).join('|')+')|\\b(cart|buy|basket|stock|price)\\b|корзин|купить|товар|в наличии|səbət|məhsul|stokda|almaq')}return RS}
+const AMB=/book it|reserve it|something|anything|recommend|\bgood\b|\bbest\b|посоветуй|что-нибудь|что-то|хорош|забронируй (это|его)|yaxşı|məsləhət|nəsə|rezerv et/;
+const ANC=/\bone\b|\bit\b|\bthat\b|\bthis\b|first|second|third|cheap|and for|what about|\band\b|перв|втор|трет|дешев|этот|тот|а на|и на|bəs|birinci|ikinci|ucuz|\d(st|nd|rd)\b|сколько|how many/;
+async function route(x,last){const re=await shopRe(),d=[];if(RF.test(x))d.push('flights');if(await RS.test(x))d.push('shopping');if(RC.test(x))d.push('cinema');
+ if(d.length>1)return{cat:'mixed',d};if(d.length===1)return{cat:d[0],d};
+ if(last&&ANC.test(x)&&!/something|anything/.test(x))return{cat:'follow-up',d:[last]};
+ if(AMB.test(x))return{cat:'ambiguous',d:[]};return{cat:'out-of-scope',d:[]}}
+const H={flights,shopping,cinema};
+function detect(x){if(/[а-яё]/.test(x))return'ru';if(/[əğışçöü]|\b(və|bir|üçün|nə|göstər|mənə|axtar|uçuş|noutbuk|qulaq|bu gün|sabah|şənbə|cümə|istəyirəm|lazımdır|var\?|bakıdan|salam)\b/.test(x))return'az';return/[a-z]{3}/.test(x)?'en':null}
+async function answer(raw){const x=lc(raw.trim()),l=detect(x);if(l)lang=S.sess.lang=l;
+ const r=await route(x,S.sess.last);let out='';
+ try{
+  if(r.cat==='ambiguous')out=t('Could you clarify: are you after flights, products or films?','Уточните, пожалуйста: вас интересуют авиабилеты, товары или фильмы?','Dəqiqləşdirin: uçuş, məhsul yoxsa film?');
+  else if(r.cat==='out-of-scope')out=t('Sorry, I can only help with flights, shopping and cinema. Try "flights to Istanbul", "wireless headphones" or "what is playing tonight?".','Извините, я помогаю только с авиабилетами, покупками и кино. Попробуйте: «рейсы в Стамбул», «наушники» или «что идёт сегодня вечером?».','Bağışlayın, yalnız uçuş, alış-veriş və kino ilə bağlı kömək edə bilərəm. Məs: "İstanbula reys", "simsiz qulaqlıq" və ya "bu axşam nə var?".');
+  else if(r.cat==='mixed'){const nm={flights:t('Flights','Рейсы','Reyslər'),shopping:t('Shopping','Покупки','Alış-veriş'),cinema:t('Cinema','Кино','Kino')};
+   const parts=[];for(const k of r.d)parts.push('**'+nm[k]+'**\n'+await H[k](x));out=parts.join('\n\n');S.sess.last=r.d[r.d.length-1]}
+  else{const k=r.d[0];out=await H[k](x);S.sess.last=k}
+ }catch(e){console.error(e);out=t('Sorry, the data source is unavailable right now. Please try again.','Извините, источник данных сейчас недоступен. Попробуйте ещё раз.','Bağışlayın, məlumat mənbəyi hazırda əlçatmazdır.')}
+ return{out,cat:r.cat+(r.d.length&&r.cat!=='mixed'&&r.cat!==r.d[0]?' → '+r.d[0]:'')}}
+/* ===== UI ===== */
+const log=document.getElementById('log'),inp=document.getElementById('q');
+const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;'),fmt=s=>esc(s).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>');
+function add(cls,html,tag){const d=document.createElement('div');d.className='m '+cls;d.innerHTML=(tag?'<span class="tag">'+tag+'</span><br>':'')+html;log.appendChild(d);log.scrollTop=log.scrollHeight}
+async function send(v){v=v.trim();if(!v)return;const m=document.createElement('div');m.className='m u';m.textContent=v;log.appendChild(m);
+ const a=await answer(v);add('b',fmt(a.out),a.cat);}
+document.getElementById('f').onsubmit=e=>{e.preventDefault();const v=inp.value;inp.value='';send(v)};
+add('b','Hi! I handle flights, shopping and cinema in one chat. Write in English, Русский or Azərbaycanca.\nПривет! Salam!','SuperChat');
+const ch=document.getElementById('chips');
+['Find me a flight from Baku to Istanbul on Friday','What is playing tonight?','Do you have wireless headphones under 100 AZN?','Показать ноутбуки','Bakıdan İstanbula 6 noyabr reys','I need a flight to Istanbul on 6 November and a backpack for the trip','Show me something good','Book two seats'].forEach(s=>{const b=document.createElement('button');b.type='button';b.textContent=s;b.onclick=()=>send(s);ch.appendChild(b)});
+/* voice (bonus): browser speech recognition, auto-stops on silence */
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition,mic=document.getElementById('mic');
+if(!SR)mic.style.display='none';else mic.onclick=()=>{try{const r=new SR();r.lang={en:'en-US',ru:'ru-RU',az:'az-AZ'}[lang];r.interimResults=false;mic.classList.add('rec');
+ r.onresult=e=>send(e.results[0][0].transcript);r.onend=r.onerror=()=>mic.classList.remove('rec');r.start()}catch(e){mic.classList.remove('rec')}};
+/* routing self-test */
+const TESTS=[['find me a flight from baku to istanbul on friday','flights'],['what is playing tonight?','cinema'],['do you have wireless headphones under 100 azn?','shopping'],['show me laptops','shopping'],['i need a flight to istanbul on 6 november and a backpack for the trip','mixed'],['show me something good','ambiguous'],['what is the weather in ganja?','out-of-scope'],['book two seats','cinema'],['покажи рейсы в стамбул','flights'],['какие фильмы сегодня','cinema'],['нужен рюкзак','shopping'],['bakıdan dubaya uçuş','flights'],['bu axşam hansı filmlər var?','cinema'],['simsiz qulaqlıq','shopping'],['the cheaper one, is it direct?','flights','flights'],['the second one, is it in stock?','shopping'],['and for saturday?','follow-up','cinema'],['tell me a joke','out-of-scope']];
+document.getElementById('test').onclick=async()=>{let ok=0,bad=[];for(const[m,e,l]of TESTS){const r=await route(m,l||null);if(r.cat===e||(e==='follow-up'&&r.cat==='follow-up')||(l&&r.d[0]===l&&e===l))ok++;else bad.push(m+' → '+r.cat+' (exp '+e+')')}
+ add('b',fmt('**Routing self-test:** '+ok+'/'+TESTS.length+' ('+Math.round(100*ok/TESTS.length)+'%)'+(bad.length?'\nErrors:\n'+bad.join('\n'):'')),'test')};
+</script></body></html>
