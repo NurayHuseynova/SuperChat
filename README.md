@@ -32,6 +32,15 @@ To host your own copy, push this repo to GitHub, then in **Settings → Pages** 
 - Data errors are caught and shown as a friendly message
 - Bonus: EN / RU / AZ with per-message language detection, browser voice input (Chrome/Edge): press the mic once, speech is transcribed and enters the same router, and recognition stops automatically when the speaker pauses. It is not hands-free, so continuous voice activity detection is not implemented
 
+### Software and Tools Utilized During Development
+
+The following tools and technologies were used throughout the project development process:
+
+- Visual Studio Code (VS Code): Served as the main development environment for writing, editing, organizing, and running the project's source code.
+- Claude AI: Helped identify coding errors, troubleshoot technical issues, and improve the quality of the implementation.
+- Gemini AI: Assisted in generating code, exploring development approaches, and implementing application features.
+- ChatGPT: Used for technical guidance, explaining programming concepts, suggesting code improvements, and providing step-by-step assistance throughout the development process.
+
 ## Architecture
 
 ```
